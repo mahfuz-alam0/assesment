@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Assessment Checklist</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --text:#1d2330; --muted:#667085; --accent:#2563eb; --ok:#16a34a; --line:#e4e7ec; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1218; --card:#181c25; --text:#e8ebf2; --muted:#98a2b3; --line:#2a3040; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui, sans-serif; }
+  header { position:sticky; top:0; background:var(--card); border-bottom:1px solid var(--line); padding:12px 16px; z-index:5; }
+  header h1 { margin:0 0 8px; font-size:18px; }
+  .bar { height:8px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .bar > div { height:100%; width:0; background:var(--ok); transition:width .2s; }
+  .meta { display:flex; justify-content:space-between; align-items:center; margin-top:6px; color:var(--muted); font-size:13px; }
+  button { background:none; border:1px solid var(--line); color:var(--text); padding:4px 10px; border-radius:6px; cursor:pointer; }
+  main { max-width:820px; margin:0 auto; padding:16px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+  section h2 { margin:0; padding:10px 14px; font-size:15px; display:flex; justify-content:space-between; border-bottom:1px solid var(--line); }
+  section h2 span { color:var(--muted); font-weight:400; font-size:13px; }
+  ul { list-style:none; margin:0; padding:6px 14px 10px; }
+  li { padding:5px 0; }
+  label { display:flex; gap:10px; align-items:flex-start; cursor:pointer; }
+  input[type=checkbox] { margin-top:4px; width:16px; height:16px; accent-color:var(--accent); flex:none; }
+  li.done label span { color:var(--muted); text-decoration:line-through; }
+  .tag { font-size:11px; color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:0 5px; margin-left:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Full Stack Assessment Checklist</h1>
+  <div class="bar"><div id="fill"></div></div>
+  <div class="meta"><span id="count">0 / 0</span><button id="reset">Reset</button></div>
+</header>
+<main id="root"></main>
+<script>
+const data = [
+  ["Setup", [
+    "Cloudflare free account created",
+    "D1 database created and bound in wrangler.toml",
+    "GitHub repo created, lockfiles committed",
+    ".env.example added (names only, no secrets)",
+    "Hosting approach chosen and justified in README"
+  ]],
+  ["Backend: Features (HR1)", [
+    "POST /api/login",
+    "POST /api/logout (deletes session, clears cookie)",
+    "GET /api/me",
+    "GET /api/vehicles scoped to dealership",
+    "GET /api/vehicles/:id scoped to dealership",
+    "PUT /api/vehicles/:id admin only",
+    "GET /api/health with no secrets",
+    "Updates persist in D1"
+  ]],
+  ["Backend: Access Boundaries (HR2, 3.1)", [
+    "Auth middleware on all protected routes",
+    "Session expiry checked on every request",
+    "Role enforced in backend (viewer PUT = 403)",
+    "Dealership and role taken from session only",
+    "Every vehicle query includes dealership_id filter",
+    "Other dealership vehicle returns 404",
+    "Input validation (400) before write",
+    "Passwords hashed (PBKDF2/WebCrypto)"
+  ]],
+  ["Backend: Concurrency (HR4)", [
+    "Single atomic UPDATE ... WHERE id AND dealership_id AND version",
+    "version incremented on success",
+    "0 rows changed returns 409",
+    "No read-then-unconditional-write anywhere",
+    "Defective variant on separate branch/commit (not deployed)"
+  ]],
+  ["Data and Seed (Section 5)", [
+    "2 dealerships",
+    "6 users: 2 admins + 1 viewer per dealership",
+    "3+ vehicles per dealership",
+    "Seed command documented",
+    "Reset command documented",
+    "Migration command documented"
+  ]],
+  ["Frontend (HR1, HR4)", [
+    "Login page",
+    "Logout button",
+    "Vehicle list scoped to dealership",
+    "Admin edit form: make, model, year, status",
+    "Viewer sees no edit controls",
+    "Reload shows persisted update",
+    "Loading state",
+    "Invalid credentials message",
+    "Session expired redirect and message",
+    "403 forbidden message",
+    "Generic API failure message",
+    "409 conflict message with Refresh and retry"
+  ]],
+  ["Tests (Section 5)", [
+    "Valid login",
+    "Invalid login",
+    "Missing auth = 401",
+    "Invalid/expired auth = 401",
+    "Old cookie after logout = 401",
+    "Admin update succeeds and persists",
+    "Viewer edit rejected, data unchanged",
+    "Cross-dealership read rejected",
+    "Cross-dealership update rejected, data unchanged",
+    "Concurrent edits: exactly 1 success, 1 conflict, final values asserted",
+    "Regression test fails on defective version",
+    "Regression test passes on fixed version",
+    "Playwright E2E: login, inventory, allowed update",
+    "Deployed smoke test: login, update, rejection, conflict",
+    "Test commands and results recorded"
+  ]],
+  ["CI/CD (HR3)", [
+    "PR workflow: tests + build",
+    "Deploy workflow only on default branch",
+    "Deploy job needs checks job",
+    "Failing check blocks deploy (demonstrated)",
+    "Secrets in GitHub secrets",
+    "Remote D1 migrations run in pipeline",
+    "Post-deploy health check",
+    "Successful workflow run link saved"
+  ]],
+  ["README", [
+    "Local setup",
+    "Environment variable names",
+    "Test and build commands",
+    "Cloudflare deployment steps",
+    "Storage, schema, scoping explanation",
+    "Concurrency explanation",
+    "Auth, expiry, logout explanation",
+    "Release recovery and D1 limitations",
+    "How to reproduce frontend conflict",
+    "Reviewer accounts (both admins of one dealership)",
+    "Results summary and deployment verification",
+    "Known limitations stated honestly",
+    "GitHub, Loom, deployed URLs"
+  ]],
+  ["Loom (5-10 min)", [
+    "Login, list, admin update, logout on deployed app",
+    "Architecture: frontend, backend, storage, Cloudflare",
+    "Auth validation and expiry code",
+    "Direct API: viewer rejection and cross-dealership rejection",
+    "Conflict in UI",
+    "Atomic update code, regression test, defective vs fixed",
+    "Pipeline, gating, secrets, health check, recovery",
+    "Tradeoffs, gaps, next improvement",
+    "No secrets visible on screen"
+  ]],
+  ["Final Submission", [
+    "Repo accessible to reviewers",
+    "Loom accessible to reviewers",
+    "Unmet requirements clearly identified",
+    "No unverified claims",
+    "No credentials in source, logs, or video"
+  ]]
+];
+const KEY = "assessment-checklist-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const root = document.getElementById("root");
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function render() {
+  root.innerHTML = "";
+  let total = 0, done = 0;
+  data.forEach(([title, items], si) => {
+    const sec = document.createElement("section");
+    const sd = items.filter((_, i) => state[si + "-" + i]).length;
+    sec.innerHTML = `<h2>${title}<span>${sd}/${items.length}</span></h2>`;
+    const ul = document.createElement("ul");
+    items.forEach((text, i) => {
+      const id = si + "-" + i;
+      total++;
+      if (state[id]) done++;
+      const li = document.createElement("li");
+      if (state[id]) li.className = "done";
+      const label = document.createElement("label");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = !!state[id];
+      cb.onchange = () => { state[id] = cb.checked; save(); render(); };
+      const sp = document.createElement("span");
+      sp.textContent = text;
+      label.append(cb, sp);
+      li.append(label);
+      ul.append(li);
+    });
+    sec.append(ul);
+    root.append(sec);
+  });
+  document.getElementById("count").textContent = done + " / " + total + " (" + Math.round(done / total * 100) + "%)";
+  document.getElementById("fill").style.width = (done / total * 100) + "%";
+}
+document.getElementById("reset").onclick = () => {
+  if (confirm("Clear all checks?")) { state = {}; save(); render(); }
+};
+render();
+</script>
+</body>
+</html>
