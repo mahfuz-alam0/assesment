@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-flash: flash 1.8s ease-out;
+  @keyframes flash {
+    from {
+      background-color: var(--color-indigo-100);
+    }
+  }
+}
