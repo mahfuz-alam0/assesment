@@ -2,6 +2,7 @@ name: CI
 
 on:
   pull_request:
+    branches: [master]
   workflow_call: # reused by deploy.yml so master deploys only after the same checks pass
 
 jobs:

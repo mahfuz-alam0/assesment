@@ -31,6 +31,6 @@ jobs:
       - run: npx wrangler deploy
       # Smoke test runs only once the repo variable APP_URL is set (Settings > Variables).
       - run: npm run smoke
-        if: vars.APP_URL != ''
+        if: success() && vars.APP_URL != ''
         env:
           APP_URL: ${{ vars.APP_URL }}
